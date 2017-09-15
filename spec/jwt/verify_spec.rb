@@ -49,14 +49,14 @@ module JWT
 
       it 'should allow strings or symbolds in options array' do
         options['aud'] = [
-          'ruby-jwt-aud', 
+          'ruby-jwt-aud',
           'test-aud',
           'ruby-ruby-ruby',
           :test
         ]
 
         array_payload['aud'].push('test')
-        
+
         Verify.verify_aud(array_payload, options)
       end
     end
@@ -191,6 +191,10 @@ module JWT
 
       it 'must allow a matching sub' do
         Verify.verify_sub(base_payload.merge('sub' => sub), options.merge(sub: sub))
+      end
+
+      it 'must allow a matching regex sub' do
+        Verify.verify_sub(base_payload.merge('sub' => sub), options.merge(sub: /^ruby jwt/))
       end
     end
   end

@@ -90,7 +90,7 @@ module JWT
       raise(
         JWT::InvalidSubError,
         "Invalid subject. Expected #{options_sub}, received #{@payload['sub'] || '<none>'}"
-      ) unless @payload['sub'].to_s == options_sub.to_s
+      ) unless  options_sub === @payload['sub'].to_s
     end
 
     private
