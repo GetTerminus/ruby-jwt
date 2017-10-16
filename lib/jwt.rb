@@ -17,7 +17,16 @@ module JWT
 
   module_function
 
+
   def encode(payload, key, algorithm = 'HS256', header_fields = {})
+    if payload['nbf'].nil? || payload['nbf'] < Time.now.to_i
+      payload['nbf'] = Time.now.to_i
+    end
+
+    raw_encode(payload, key, algorithm, header_fields)
+  end
+
+  def raw_encode(payload, key, algorithm = 'HS256', header_fields = {})
     encoder = Encode.new payload, key, algorithm, header_fields
     encoder.segments
   end
