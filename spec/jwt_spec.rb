@@ -35,11 +35,56 @@ describe JWT do
     expect(OpenSSL.errors).to be_empty
   end
 
+  context '.encode' do
+    it "fills in nbf if it is unset" do
+      expect(JWT).to receive(:raw_encode).with(
+        hash_including(
+          'nbf' => a_kind_of(Numeric).and(be_within(1).of(Time.now.to_i))
+        ),
+        any_args
+      )
+
+      JWT.encode({}, 'foo')
+    end
+
+    it "fills in a nil value" do
+      expect(JWT).to receive(:raw_encode).with(
+        hash_including(
+          'nbf' => a_kind_of(Numeric).and(be_within(1).of(Time.now.to_i))
+        ),
+        any_args
+      )
+
+      JWT.encode({'nbf' => nil}, 'foo')
+    end
+
+    it "updates an old value" do
+      expect(JWT).to receive(:raw_encode).with(
+        hash_including(
+          'nbf' => a_kind_of(Numeric).and(be_within(1).of(Time.now.to_i))
+        ),
+        any_args
+      )
+
+      JWT.encode({'nbf' => Time.now.to_i - 100}, 'foo')
+    end
+
+    it "preserves a time in the future" do
+      expect(JWT).to receive(:raw_encode).with(
+        hash_including(
+          'nbf' => a_kind_of(Numeric).and(be_within(1).of(Time.now.to_i + 100))
+        ),
+        any_args
+      )
+
+      JWT.encode({'nbf' => Time.now.to_i + 100}, 'foo')
+    end
+  end
   context 'alg: NONE' do
     let(:alg) { 'none' }
 
     it 'should generate a valid token' do
-      token = JWT.encode payload, nil, alg
+      token = JWT.raw_encode payload, nil, alg
 
       expect(token).to eq data['NONE']
     end
@@ -55,7 +100,7 @@ describe JWT do
       payload['exp'] = Time.now
 
       expect do
-        JWT.encode payload, nil, alg
+        JWT.raw_encode payload, nil, alg
       end.to raise_error JWT::InvalidPayload
     end
   end
@@ -63,7 +108,7 @@ describe JWT do
   %w(HS256 HS384 HS512).each do |alg|
     context "alg: #{alg}" do
       it 'should generate a valid token' do
-        token = JWT.encode payload, data[:secret], alg
+        token = JWT.raw_encode payload, data[:secret], alg
 
         expect(token).to eq data[alg]
       end
@@ -92,7 +137,7 @@ describe JWT do
   %w(RS256 RS384 RS512).each do |alg|
     context "alg: #{alg}" do
       it 'should generate a valid token' do
-        token = JWT.encode payload, data[:rsa_private], alg
+        token = JWT.raw_encode payload, data[:rsa_private], alg
 
         expect(token).to eq data[alg]
       end
@@ -125,7 +170,7 @@ describe JWT do
   %w(ES256 ES384 ES512).each do |alg|
     context "alg: #{alg}" do
       before(:each) do
-        data[alg] = JWT.encode payload, data["#{alg}_private"], alg
+        data[alg] = JWT.raw_encode payload, data["#{alg}_private"], alg
       end
 
       let(:wrong_key) { OpenSSL::PKey.read(File.read(File.join(CERT_PATH, 'ec256-wrong-public.pem'))) }
@@ -161,7 +206,7 @@ describe JWT do
   context 'Invalid' do
     it 'algorithm should raise NotImplementedError' do
       expect do
-        JWT.encode payload, 'secret', 'HS255'
+        JWT.raw_encode payload, 'secret', 'HS255'
       end.to raise_error NotImplementedError
     end
 
@@ -170,10 +215,10 @@ describe JWT do
       key.generate_key
 
       expect do
-        JWT.encode payload, key, 'ES256'
+        JWT.raw_encode payload, key, 'ES256'
       end.to raise_error JWT::IncorrectAlgorithm
 
-      token = JWT.encode payload, data['ES256_private'], 'ES256'
+      token = JWT.raw_encode payload, data['ES256_private'], 'ES256'
       key.private_key = nil
 
       expect do
@@ -185,7 +230,7 @@ describe JWT do
   context 'Verify' do
     context 'algorithm' do
       it 'should raise JWT::IncorrectAlgorithm on missmatch' do
-        token = JWT.encode payload, data[:secret], 'HS512'
+        token = JWT.raw_encode payload, data[:secret], 'HS512'
 
         expect do
           JWT.decode token, data[:secret], true, algorithm: 'HS384'
@@ -199,11 +244,11 @@ describe JWT do
 
     context 'issuer claim' do
       let(:iss) { 'ruby-jwt-gem' }
-      let(:invalid_token) { JWT.encode payload, data[:secret] }
+      let(:invalid_token) { JWT.raw_encode payload, data[:secret] }
 
       let :token do
         iss_payload = payload.merge(iss: iss)
-        JWT.encode iss_payload, data[:secret]
+        JWT.raw_encode iss_payload, data[:secret]
       end
 
       it 'if verify_iss is set to false (default option) should not raise JWT::InvalidIssuerError' do
