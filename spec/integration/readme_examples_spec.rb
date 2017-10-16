@@ -8,7 +8,7 @@ describe 'README.md code test' do
     let(:payload) { { data: 'test' } }
 
     it 'NONE' do
-      token = JWT.encode payload, nil, 'none'
+      token = JWT.raw_encode payload, nil, 'none'
       decoded_token = JWT.decode token, nil, false
 
       expect(token).to eq 'eyJhbGciOiJub25lIn0.eyJkYXRhIjoidGVzdCJ9.'
@@ -19,7 +19,7 @@ describe 'README.md code test' do
     end
 
     it 'HMAC' do
-      token = JWT.encode payload, 'my$ecretK3y', 'HS256'
+      token = JWT.raw_encode payload, 'my$ecretK3y', 'HS256'
       decoded_token = JWT.decode token, 'my$ecretK3y', false
 
       expect(token).to eq 'eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjoidGVzdCJ9.pNIWIL34Jo13LViZAJACzK6Yf0qnvT_BuwOxiMCPE-Y'
@@ -33,7 +33,7 @@ describe 'README.md code test' do
       rsa_private = OpenSSL::PKey::RSA.generate 2048
       rsa_public = rsa_private.public_key
 
-      token = JWT.encode payload, rsa_private, 'RS256'
+      token = JWT.raw_encode payload, rsa_private, 'RS256'
       decoded_token = JWT.decode token, rsa_public, true, algorithm: 'RS256'
 
       expect(decoded_token).to eq [
@@ -48,7 +48,7 @@ describe 'README.md code test' do
       ecdsa_public = OpenSSL::PKey::EC.new ecdsa_key
       ecdsa_public.private_key = nil
 
-      token = JWT.encode payload, ecdsa_key, 'ES256'
+      token = JWT.raw_encode payload, ecdsa_key, 'ES256'
       decoded_token = JWT.decode token, ecdsa_public, true, algorithm: 'ES256'
 
       expect(decoded_token).to eq [
@@ -66,7 +66,7 @@ describe 'README.md code test' do
         exp = Time.now.to_i + 4 * 3600
         exp_payload = { data: 'data', exp: exp }
 
-        token = JWT.encode exp_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode exp_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, algorithm: 'HS256'
@@ -79,7 +79,7 @@ describe 'README.md code test' do
 
         exp_payload = { data: 'data', exp: exp }
 
-        token = JWT.encode exp_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode exp_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, leeway: leeway, algorithm: 'HS256'
@@ -91,7 +91,7 @@ describe 'README.md code test' do
       it 'without leeway' do
         nbf = Time.now.to_i - 3600
         nbf_payload = { data: 'data', nbf: nbf }
-        token = JWT.encode nbf_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode nbf_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, algorithm: 'HS256'
@@ -102,7 +102,7 @@ describe 'README.md code test' do
         nbf = Time.now.to_i + 10
         leeway = 30
         nbf_payload = { data: 'data', nbf: nbf }
-        token = JWT.encode nbf_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode nbf_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, leeway: leeway, algorithm: 'HS256'
@@ -114,7 +114,7 @@ describe 'README.md code test' do
       iss = 'My Awesome Company Inc. or https://my.awesome.website/'
       iss_payload = { data: 'data', iss: iss }
 
-      token = JWT.encode iss_payload, hmac_secret, 'HS256'
+      token = JWT.raw_encode iss_payload, hmac_secret, 'HS256'
 
       expect do
         JWT.decode token, hmac_secret, true, iss: iss, algorithm: 'HS256'
@@ -126,7 +126,7 @@ describe 'README.md code test' do
         aud = %w[Young Old]
         aud_payload = { data: 'data', aud: aud }
 
-        token = JWT.encode aud_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode aud_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, aud: %w[Old Young], verify_aud: true, algorithm: 'HS256'
@@ -146,7 +146,7 @@ describe 'README.md code test' do
       jti = Digest::MD5.hexdigest(jti_raw)
       jti_payload = { data: 'data', iat: iat, jti: jti }
 
-      token = JWT.encode jti_payload, hmac_secret, 'HS256'
+      token = JWT.raw_encode jti_payload, hmac_secret, 'HS256'
 
       expect do
         JWT.decode token, hmac_secret, true, verify_jti: true, algorithm: 'HS256'
@@ -158,7 +158,7 @@ describe 'README.md code test' do
         iat = Time.now.to_i
         iat_payload = { data: 'data', iat: iat }
 
-        token = JWT.encode iat_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode iat_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, verify_iat: true, algorithm: 'HS256'
@@ -169,7 +169,7 @@ describe 'README.md code test' do
         iat = Time.now.to_i - 7
         iat_payload = { data: 'data', iat: iat, leeway: 10 }
 
-        token = JWT.encode iat_payload, hmac_secret, 'HS256'
+        token = JWT.raw_encode iat_payload, hmac_secret, 'HS256'
 
         expect do
           JWT.decode token, hmac_secret, true, verify_iat: true, algorithm: 'HS256'
@@ -181,7 +181,7 @@ describe 'README.md code test' do
       it 'with custom field' do
         payload = { data: 'test' }
 
-        token = JWT.encode payload, nil, 'none', typ: 'JWT'
+        token = JWT.raw_encode payload, nil, 'none', typ: 'JWT'
         _, header = JWT.decode token, nil, false
 
         expect(header['typ']).to eq 'JWT'
@@ -192,7 +192,7 @@ describe 'README.md code test' do
       sub = 'Subject'
       sub_payload = { data: 'data', sub: sub }
 
-      token = JWT.encode sub_payload, hmac_secret, 'HS256'
+      token = JWT.raw_encode sub_payload, hmac_secret, 'HS256'
 
       expect do
         JWT.decode token, hmac_secret, true, 'sub' => sub, :verify_sub => true, :algorithm => 'HS256'
