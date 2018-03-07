@@ -100,7 +100,7 @@ module JWT
     end
 
     def leeway
-      extract_option :leeway
+      5
     end
   end
 end

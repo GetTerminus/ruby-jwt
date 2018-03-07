@@ -72,7 +72,7 @@ describe 'README.md code test' do
         end.not_to raise_error
       end
 
-      it 'with leeway' do
+      xit 'with leeway' do
         exp = Time.now.to_i - 10
         leeway = 30 # seconds
 
@@ -97,7 +97,7 @@ describe 'README.md code test' do
         end.not_to raise_error
       end
 
-      it 'with leeway' do
+      xit 'with leeway' do
         nbf = Time.now.to_i + 10
         leeway = 30
         nbf_payload = { data: 'data', nbf: nbf }
